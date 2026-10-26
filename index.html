@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prospectos</title>
+<meta name="theme-color" content="#111111">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Prospectos">
+<style>
+  :root{
+    --naranja:#EE7F1A; --naranja-osc:#C9650B; --negro:#141414; --gris:#6b6b6b;
+    --linea:#e4e0da; --fondo:#f7f5f2; --blanco:#fff; --ok:#1f8a4c; --error:#c0392b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--fondo);color:var(--negro);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:18px}
+  .app{max-width:520px;margin:0 auto;padding:12px 16px calc(32px + env(safe-area-inset-bottom))}
+  header{display:flex;align-items:center;gap:12px;padding:6px 0 14px}
+  header img{height:52px;width:auto}
+  header .t{flex:1;min-width:0}
+  header h1{font-size:20px;margin:0;line-height:1.1}
+  header small{color:var(--gris);font-size:14px}
+  .salir{background:none;border:0;color:var(--gris);font-size:14px;text-decoration:underline;padding:8px}
+  .card{background:var(--blanco);border:1px solid var(--linea);border-radius:16px;padding:16px;margin-bottom:14px}
+  label.l{display:block;font-weight:700;font-size:17px;margin:0 0 8px}
+  label.l span{font-weight:400;color:var(--gris);font-size:15px}
+  input[type=text],input[type=tel],input[type=email],input[type=password]{
+    width:100%;font-size:20px;padding:14px;border:2px solid var(--linea);border-radius:12px;background:#fff;color:var(--negro)}
+  input:focus{outline:none;border-color:var(--naranja)}
+  .campo{margin-bottom:18px}
+  .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .chip{font-size:17px;padding:14px 8px;border:2px solid var(--linea);border-radius:12px;background:#fff;
+    color:var(--negro);font-weight:600;min-height:54px}
+  .chip.on{background:var(--negro);border-color:var(--negro);color:#fff}
+  .chips.origen .chip.on{background:var(--naranja);border-color:var(--naranja)}
+  .chips .ancho{grid-column:1 / -1}
+  .btn{width:100%;font-size:21px;font-weight:800;padding:18px;border:0;border-radius:14px;
+    background:var(--naranja);color:#fff;min-height:62px}
+  .btn:active{background:var(--naranja-osc)}
+  .btn[disabled]{opacity:.5}
+  .btn.sec{background:var(--negro)}
+  .msg{border-radius:12px;padding:14px;margin-bottom:14px;font-size:17px;display:none}
+  .msg.ok{display:block;background:#e7f5ed;color:var(--ok);border:1px solid #bfe3cd}
+  .msg.err{display:block;background:#fbeaea;color:var(--error);border:1px solid #f0c4c0}
+  .msg.aviso{display:block;background:#fff4e6;color:#8a4b00;border:1px solid #f5d3a6}
+  .faltan{color:var(--error);font-size:15px;margin-top:6px;display:none}
+  .lista h2{font-size:16px;margin:0 0 10px;color:var(--gris);font-weight:700}
+  .fila{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--linea);font-size:16px}
+  .fila:first-of-type{border-top:0}
+  .fila b{display:block}
+  .fila small{color:var(--gris)}
+  .tag{font-size:13px;background:var(--fondo);border:1px solid var(--linea);border-radius:20px;padding:4px 10px;white-space:nowrap;align-self:center}
+  .oculto{display:none!important}
+  .pie{text-align:center;color:#a19a90;font-size:12px;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <img id="logo" src="logos/nitsuga.png" alt="" onerror="this.style.display='none'">
+    <div class="t"><h1 id="titulo">Nuevo cliente</h1><small id="subtitulo">Registro de prospectos</small></div>
+    <button class="salir oculto" id="btnSalir">Salir</button>
+  </header>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- LOGIN (una sola vez) -->
+  <form id="vLogin" class="card oculto" autocomplete="on">
+    <div class="campo"><label class="l" for="email">Correo</label>
+      <input id="email" type="email" inputmode="email" autocomplete="username" required></div>
+    <div class="campo"><label class="l" for="pass">Contraseña</label>
+      <input id="pass" type="password" autocomplete="current-password" required></div>
+    <button class="btn" type="submit" id="btnEntrar">Entrar</button>
+  </form>
+
+  <!-- CAPTURA -->
+  <form id="vCaptura" class="oculto" novalidate>
+    <div class="card">
+      <div class="campo"><label class="l" for="nombre">Nombre</label>
+        <input id="nombre" type="text" autocomplete="off" autocapitalize="words" placeholder="Ej. Laura Gómez"></div>
+      <div class="campo"><label class="l" for="tel">WhatsApp</label>
+        <input id="tel" type="tel" inputmode="numeric" autocomplete="off" placeholder="10 dígitos"></div>
+      <div class="campo"><label class="l">¿Cómo nos encontró?</label>
+        <div class="chips origen" id="origenes"></div>
+        <div class="faltan" id="faltaOrigen">Falta elegir cómo nos encontró.</div></div>
+      <div class="campo" style="margin-bottom:0"><label class="l">¿Qué busca? <span>(opcional)</span></label>
+        <div class="chips" id="productos"></div></div>
+    </div>
+    <button class="btn" type="submit" id="btnGuardar">Guardar</button>
+  </form>
+
+  <div id="vLista" class="card lista oculto" style="margin-top:14px">
+    <h2>Últimos registrados</h2>
+    <div id="filas"></div>
+  </div>
+
+  <div class="pie">Marketino</div>
+</div>
+
+<script>
+// ===== Configuración (clave pública; los datos los protege RLS en Supabase) =====
+const SB_URL = 'https://bufstdxikkiorrhfrdwh.supabase.co';
+const SB_KEY = 'sb_publishable_qhfEEEMSv8OAbl_uaZNSlw_77sEOvlb';
+const PRODUCTOS = ['Volantes','Tarjetas','Lonas','Sellos','Trípticos','Notas de venta','Otro'];
+const ORIGENES_RESPALDO = [
+  {codigo:'instagram',etiqueta:'Instagram'},{codigo:'facebook',etiqueta:'Facebook'},
+  {codigo:'google',etiqueta:'Google'},{codigo:'recomendacion',etiqueta:'Recomendación'},
+  {codigo:'cliente_antiguo',etiqueta:'Cliente antiguo'},{codigo:'local',etiqueta:'Llegó al local'},
+  {codigo:'otro',etiqueta:'Otro'}];
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+let sesion = store.get('sb_sesion');
+let imprenta = null, origen = null, interes = null, etiquetas = {};
+
+function aviso(texto, tipo){ const m=$('msg'); m.className='msg '+tipo; m.textContent=texto; if(tipo!=='ok') m.scrollIntoView({behavior:'smooth',block:'center'}); }
+function limpiarAviso(){ $('msg').className='msg'; }
+function ver(id, si){ $(id).classList.toggle('oculto', !si); }
+
+// ===== Auth (REST directo, sin librerías) =====
+async function auth(grant, body){
+  const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=${grant}`, {
+    method:'POST', headers:{apikey:SB_KEY,'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error_description || d.msg || 'No se pudo entrar');
+  sesion = {access:d.access_token, refresh:d.refresh_token, vence:Date.now()+ (d.expires_in-60)*1000};
+  store.set('sb_sesion', sesion);
+}
+async function token(){
+  if(!sesion) throw new Error('sin sesion');
+  if(Date.now() > sesion.vence) await auth('refresh_token', {refresh_token: sesion.refresh});
+  return sesion.access;
+}
+async function api(ruta, opts={}){
+  const t = await token();
+  const r = await fetch(`${SB_URL}/rest/v1/${ruta}`, {...opts,
+    headers:{apikey:SB_KEY, Authorization:`Bearer ${t}`, 'Content-Type':'application/json', ...(opts.headers||{})}});
+  if(r.status===401){ salir(); throw new Error('La sesión expiró. Entra de nuevo.'); }
+  const d = await r.json().catch(()=>null);
+  if(!r.ok) throw new Error((d && (d.message||d.hint)) || 'Error al guardar');
+  return d;
+}
+function salir(){ sesion=null; store.del('sb_sesion'); mostrarLogin(); }
+
+// ===== Vistas =====
+function mostrarLogin(){ ver('vLogin',true); ver('vCaptura',false); ver('vLista',false); ver('btnSalir',false); }
+async function mostrarCaptura(){
+  ver('vLogin',false);
+  const imps = await api('imprentas?select=id,nombre,slug&order=nombre');
+  if(!imps || !imps.length){ aviso('Este correo no está ligado a ninguna imprenta. Avisa a Marketino.','err'); ver('btnSalir',true); return; }
+  imprenta = imps[0];
+  $('titulo').textContent = imprenta.nombre;
+  $('logo').src = `logos/${imprenta.slug}.png`;
+  let ors = ORIGENES_RESPALDO;
+  try{ const o = await api('origenes?select=codigo,etiqueta&order=orden'); if(o && o.length) ors = o; }catch(e){}
+  pintarChips('origenes', ors.map(o=>[o.codigo,o.etiqueta]), v=>{ origen=v; $('faltaOrigen').style.display='none'; });
+  pintarChips('productos', PRODUCTOS.map(p=>[p,p]), v=>{ interes=v; }, true);
+  ors.forEach(o=> etiquetas[o.codigo]=o.etiqueta);
+  ver('vCaptura',true); ver('btnSalir',true);
+  cargarLista();
+}
+function pintarChips(cont, items, alElegir, permiteQuitar){
+  const c=$(cont); c.innerHTML='';
+  items.forEach(([valor,texto],i)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=texto; b.dataset.v=valor;
+    if(items.length%2===1 && i===items.length-1) b.classList.add('ancho');
+    b.onclick=()=>{
+      const yaEstaba=b.classList.contains('on');
+      c.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+      if(permiteQuitar && yaEstaba){ alElegir(null); return; }
+      b.classList.add('on'); alElegir(valor);
+    };
+    c.appendChild(b);
+  });
+}
+async function cargarLista(){
+  try{
+    const filas = await api(`prospectos?select=nombre,telefono,origen,creado_en&imprenta_id=eq.${imprenta.id}&order=creado_en.desc&limit=5`);
+    const f=$('filas'); f.innerHTML='';
+    if(!filas.length){ ver('vLista',false); return; }
+    filas.forEach(p=>{
+      const d=new Date(p.creado_en);
+      const div=document.createElement('div'); div.className='fila';
+      div.innerHTML=`<div><b></b><small></small></div><span class="tag"></span>`;
+      div.querySelector('b').textContent=p.nombre;
+      div.querySelector('small').textContent=`${p.telefono} · ${d.toLocaleDateString('es-MX',{day:'numeric',month:'short'})} ${d.toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})}`;
+      div.querySelector('.tag').textContent=etiquetas[p.origen]||p.origen;
+      f.appendChild(div);
+    });
+    ver('vLista',true);
+  }catch(e){}
+}
+
+// ===== Eventos =====
+$('vLogin').addEventListener('submit', async e=>{
+  e.preventDefault(); limpiarAviso(); $('btnEntrar').disabled=true;
+  try{ await auth('password',{email:$('email').value.trim(), password:$('pass').value}); await mostrarCaptura(); }
+  catch(err){ aviso(err.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':err.message,'err'); }
+  finally{ $('btnEntrar').disabled=false; }
+});
+$('btnSalir').onclick = salir;
+
+$('vCaptura').addEventListener('submit', async e=>{
+  e.preventDefault(); limpiarAviso();
+  const nombre=$('nombre').value.trim().replace(/\s+/g,' ');
+  let tel=$('tel').value.replace(/\D/g,'');
+  if(tel.length>10) tel=tel.slice(-10);
+  if(!nombre){ aviso('Falta el nombre.','err'); $('nombre').focus(); return; }
+  if(tel.length!==10){ aviso('El WhatsApp debe tener 10 dígitos.','err'); $('tel').focus(); return; }
+  if(!origen){ $('faltaOrigen').style.display='block'; aviso('Falta elegir cómo nos encontró.','err'); return; }
+  $('btnGuardar').disabled=true; $('btnGuardar').textContent='Guardando…';
+  try{
+    const prev = await api(`prospectos?select=nombre,origen,creado_en&imprenta_id=eq.${imprenta.id}&telefono=eq.${tel}&limit=1`);
+    if(prev.length){
+      const p=prev[0], d=new Date(p.creado_en).toLocaleDateString('es-MX',{day:'numeric',month:'long'});
+      aviso(`Este número ya estaba registrado: ${p.nombre}, el ${d}, por ${etiquetas[p.origen]||p.origen}. No se duplicó.`,'aviso');
+    } else {
+      await api('prospectos', {method:'POST', headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({imprenta_id:imprenta.id, nombre, telefono:tel, origen, interes})});
+      aviso(`✓ Guardado: ${nombre} (${etiquetas[origen]||origen})`,'ok');
+    }
+    $('vCaptura').reset(); origen=null; interes=null;
+    document.querySelectorAll('.chip.on').forEach(x=>x.classList.remove('on'));
+    window.scrollTo({top:0,behavior:'smooth'});
+    cargarLista();
+  }catch(err){ aviso(err.message,'err'); }
+  finally{ $('btnGuardar').disabled=false; $('btnGuardar').textContent='Guardar'; }
+});
+
+// ===== Inicio =====
+(async()=>{
+  if(!sesion){ mostrarLogin(); return; }
+  try{ await mostrarCaptura(); }catch(e){ salir(); }
+})();
+</script>
+</body>
+</html>
